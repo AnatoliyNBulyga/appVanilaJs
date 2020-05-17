@@ -1,9 +1,16 @@
-import {isValid} from "./utils";
+import {Question} from './question'
+import {authWithEmailAndPassword, getAuthForm} from './auth';
+import {isValid, createModal} from "./utils";
 import './styles.css';
 
 const form = document.getElementById('form');
+const modalBtn = document.getElementById('modal-btn');
 const input = form.querySelector('#question-input');
 const submitBtn = form.querySelector('#submit');
+
+window.addEventListener('load', Question.renderList);
+
+modalBtn.addEventListener('click', openModal);
 
 form.addEventListener('submit', submitFormHandler);
 input.addEventListener('input', () => {
@@ -21,11 +28,32 @@ function submitFormHandler(event) {
 
      submitBtn.disabled = true
      // Async request to server to save question
-      
-     console.log('Question', question);
-     input.value = '';
-     input.className = '';
+     Question.create(question).then(() => {
+         input.value = '';
+         input.className = '';
+         submitBtn.disable = false;
+     });
+
   }
+}
+
+function openModal() {
+    createModal('Авторизация', getAuthForm());
+    document
+        .getElementById('auth-form')
+        .addEventListener('submit', authFormHandler, {once: true});
+}
+
+function authFormHandler(event) {
+    event.preventDefault();
+    const email = event.target.querySelector('#email').value;
+    const password = event.target.querySelector('#password').value;
+    authWithEmailAndPassword(email, password)
+        .then(Question.fetch)
+        .then(renderModalAfterAuth)
+}
+function renderModalAfterAuth(content) {
+    console.log('Content', content);
 }
 
 console.log('App working...');
